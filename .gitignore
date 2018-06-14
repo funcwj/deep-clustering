@@ -1,0 +1,6 @@
+*.wav
+*.mat
+egs.py
+__pycache__/
+data/
+.vscode/
