@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# wujian@2018
 
 
 set -eu
 
-[ $# -ne 2 ] && echo "format error: $0 <mix-scp> <sdr-scp>" && exit 1
+[ $# -ne 1 ] && echo "format error: $0 <mix-scp>" && exit 1
 
-[ ! -f spk2gender ] && echo "$0: missing spk2gender" && exit 1
+for x in spk2gender sdr.scp; do
+  [ ! -f $x ] && echo "$0: missing $x" && exit 1
+done
 
 src_scp=$1
-sdr_scp=$2
 
 awk '{print $1}' $src_scp | \
 awk 'BEGIN{
@@ -25,8 +25,8 @@ awk 'BEGIN{
   s2 = spk2gender[substr(t[3], 0, 3)]
   printf("%s\t%s%s\n", $1, s1, s2)
 }' | \
-awk -v sdr=$sdr_scp 'BEGIN{
-  while (getline < sdr) {
+awk 'BEGIN{
+  while (getline < "sdr.scp") {
     mix2sdr[$1] = $2; 
   }
   FF = 0; nFF = 0;
