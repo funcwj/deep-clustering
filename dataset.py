@@ -108,6 +108,9 @@ class Dataset(object):
         return [self._index_by_num(index) for index in list_idx]
 
     def __getitem__(self, index):
+        """
+            Implement to support multi-type index: by key, number or list
+        """
         if type(index) == int:
             return self._index_by_num(index)
         elif type(index) == str:

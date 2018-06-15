@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
+# wujian@2018
 
 set -eu
 
 # [ $# -ne 1 ] && echo "format error: $0 <train_conf>" && exit 1
 
-conf=train.yaml
+conf=conf/train.yaml
 
 checkpoint=$(grep checkpoint train.yaml | awk '{print $2}' | sed 's:"::g')
 

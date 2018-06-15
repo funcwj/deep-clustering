@@ -126,7 +126,8 @@ def run(args):
                 frame_shift=frame_shift,
                 window=window,
                 norm=norm,
-                fs=8000)
+                fs=8000,
+                length=samps.size)
             if args.dump_mask:
                 sio.savemat(
                     os.path.join(args.dump_dir, '{}.spk{}.mat'.format(

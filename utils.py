@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# coding=utf-8
+# wujian@2018
+
+
 import os
 import warnings
 import yaml
@@ -7,11 +12,11 @@ import numpy as np
 
 MAX_INT16 = np.iinfo(np.int16).max
 
-
 config_keys = [
     "trainer", "dcnet", "spectrogram_reader", "dataloader", "train_scp_conf",
     "valid_scp_conf", "debug_scp_conf"
 ]
+
 
 def nfft(window_size):
     return int(2**np.ceil(int(np.log2(window_size))))
@@ -59,10 +64,17 @@ def istft(file,
           window="hanning",
           transpose=True,
           norm=None,
-          fs=16000):
+          fs=16000,
+          length=None):
     if transpose:
         stft_mat = np.transpose(stft_mat)
-    samps = audio_lib.istft(stft_mat, frame_shift, frame_length, window=window)
+    samps = audio_lib.istft(
+        stft_mat,
+        frame_shift,
+        frame_length,
+        center=False,
+        window=window,
+        length=length)
     samps_norm = np.linalg.norm(samps, np.inf)
     # renorm if needed
     if not norm:
@@ -85,6 +97,7 @@ def compute_vad_mask(spectra, threshold_db=40, apply_exp=True):
     mask = np.array(spectra > threshold, dtype=np.float32)
     return mask
 
+
 def apply_cmvn(feats, cmvn_dict):
     if type(cmvn_dict) != dict:
         raise TypeError("Input must be a python dictionary")
@@ -93,6 +106,7 @@ def apply_cmvn(feats, cmvn_dict):
     if 'std' in cmvn_dict:
         feats = feats / cmvn_dict['std']
     return feats
+
 
 def parse_scps(scp_path):
     assert os.path.exists(scp_path)
@@ -109,6 +123,7 @@ def parse_scps(scp_path):
             scp_dict[key] = addr
     return scp_dict
 
+
 def filekey(path):
     fname = os.path.basename(path)
     if not fname:
@@ -118,6 +133,7 @@ def filekey(path):
         return token[0]
     else:
         return '.'.join(token[:-1])
+
 
 def parse_yaml(yaml_conf):
     if not os.path.exists(yaml_conf):
@@ -131,4 +147,16 @@ def parse_yaml(yaml_conf):
             raise KeyError("Missing {} configs in yaml".format(key))
     num_frames = config_dict["spectrogram_reader"]["frame_length"]
     num_bins = nfft(num_frames) // 2 + 1
+    if len(config_dict["train_scp_conf"]) != len(
+            config_dict["valid_scp_conf"]):
+        raise ValueError("Check configures in train_scp_conf/valid_scp_conf")
+    num_spks = 0
+    for key in config_dict["train_scp_conf"]:
+        if key[:3] == "spk":
+            num_spks += 1
+    if num_spks != config_dict["trainer"]["num_spks"]:
+        warnings.warn(
+            "Number of speakers configured in trainer do not match *_scp_conf, "
+            " correct to {}".format(num_spks))
+        config_dict["trainer"]["num_spks"] = num_spks
     return num_bins, config_dict
