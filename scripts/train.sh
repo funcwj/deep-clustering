@@ -7,13 +7,13 @@ set -eu
 
 conf=conf/train.yaml
 
-checkpoint=$(grep checkpoint train.yaml | awk '{print $2}' | sed 's:"::g')
+checkpoint=$(grep checkpoint $conf | awk '{print $2}' | sed 's:"::g')
 
 mkdir -p $checkpoint
 
 echo "start training --> $checkpoint ..."
 
-cp $conf $checkpoint
+cp $conf $checkpoint/train.yaml
 
 CUDA_VISIBLE_DEVICES=1 python ./train_dcnet.py --config $conf --num-epoches 20 > $checkpoint/train.log 2>&1 
 

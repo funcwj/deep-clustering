@@ -1,7 +1,7 @@
 # config for training
 
 trainer:
-  checkpoint: "./tune/2spk_dcnet_b"
+  checkpoint: "./tune/2spk_dcnet_a"
   optimizer: "adam"
   lr: 1e-3
   momentum: 0.9

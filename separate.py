@@ -50,6 +50,8 @@ class DeepCluster(object):
         pca_mat = self.pca.fit_transform(active_embed)
 
         def form_mask(classes, spkid, vad_mask):
+            # or give silence bins to each speaker
+            # mask = ~vad_mask
             mask = np.zeros_like(vad_mask)
             mask[vad_mask] = (classes == spkid)
             return mask
@@ -107,6 +109,7 @@ def run(args):
                 frame_length=frame_length,
                 frame_shift=frame_shift,
                 window=window,
+                center=True,
                 return_samps=True)
         except FileNotFoundError:
             print("Skip utterance {}... not found".format(key))
@@ -118,6 +121,9 @@ def run(args):
             stft_mat, cmvn=dict_mvn)
 
         for index, stft_mat in enumerate(spk_spectrogram):
+            # NOTE: bss_eval_sources.m is sensitive to shift of samples,
+            #       so it's better to center frames and keep separated speech
+            #       the same length as mixture's.
             istft(
                 os.path.join(args.dump_dir, '{}.spk{}.wav'.format(
                     key, index + 1)),
@@ -125,10 +131,12 @@ def run(args):
                 frame_length=frame_length,
                 frame_shift=frame_shift,
                 window=window,
+                center=True,
                 norm=norm,
                 fs=8000,
-                length=samps.size)
+                nsamps=samps.size)
             if args.dump_mask:
+                # compatible with matlab
                 sio.savemat(
                     os.path.join(args.dump_dir, '{}.spk{}.mat'.format(
                         key, index + 1)), {"mask": spk_mask[index]})

@@ -230,9 +230,10 @@ class DataLoader(object):
             shuffle=self.shuffle,
             drop_last=self.drop_last)
         num_utts = 0
+        log_period = 2000 // self.batch_size
         for e, index in enumerate(sampler):
             num_utts += (len(index) if type(index) is list else 1)
-            if not (e + 1) % 100:
+            if not (e + 1) % log_period:
                 logger.info("Processed {} batches, {} utterances".format(
                     e + 1, num_utts))
             yield self._process(index)

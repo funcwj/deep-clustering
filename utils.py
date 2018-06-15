@@ -26,6 +26,7 @@ def nfft(window_size):
 def stft(file,
          frame_length=1024,
          frame_shift=256,
+         center=False,
          window="hann",
          return_samps=False,
          apply_abs=False,
@@ -45,7 +46,7 @@ def stft(file,
         frame_shift,
         frame_length,
         window=window,
-        center=False)
+        center=center)
     if apply_abs:
         stft_mat = np.abs(stft_mat)
     if apply_pow:
@@ -61,20 +62,21 @@ def istft(file,
           stft_mat,
           frame_length=1024,
           frame_shift=256,
-          window="hanning",
+          center=False,
+          window="hann",
           transpose=True,
           norm=None,
           fs=16000,
-          length=None):
+          nsamps=None):
     if transpose:
         stft_mat = np.transpose(stft_mat)
     samps = audio_lib.istft(
         stft_mat,
         frame_shift,
         frame_length,
-        center=False,
         window=window,
-        length=length)
+        center=center,
+        length=nsamps)
     samps_norm = np.linalg.norm(samps, np.inf)
     # renorm if needed
     if not norm:

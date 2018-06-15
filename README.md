@@ -17,4 +17,3 @@ see requirements.txt
 ```shell
 python ./train_dcnet.py --config conf/train.yaml --num-epoches 20 > train.log 2>&1 &
 ```
-

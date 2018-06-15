@@ -1,0 +1,52 @@
+# config for training
+
+trainer:
+  checkpoint: "./tune/3spk_dcnet_a"
+  optimizer: "adam"
+  lr: 1e-3
+  momentum: 0.9
+  weight_decay: 0
+  clip_norm: 200
+  num_spks: 3
+
+dcnet:
+  rnn: "lstm"
+  embedding_dim: 20
+  num_layers: 4
+  hidden_size: 300
+  dropout: 0.5
+  non_linear: "tanh"
+  bidirectional: true
+
+spectrogram_reader:
+  frame_shift: 64
+  frame_length: 256
+  window: "hann"
+  center: true
+  transpose: true
+  apply_log: true
+  apply_abs: true
+
+train_scp_conf:
+  mixture: "./data/3spk/train/mix.scp"
+  spk1: "./data/3spk/train/spk1.scp"
+  spk2: "./data/3spk/train/spk2.scp"
+  spk3: "./data/3spk/train/spk3.scp"
+
+valid_scp_conf:
+  mixture: "./data/3spk/dev/mix.scp"
+  spk1: "./data/3spk/dev/spk1.scp"
+  spk2: "./data/3spk/dev/spk2.scp"
+  spk3: "./data/3spk/dev/spk3.scp"
+
+debug_scp_conf:
+  # mixture: "./data/tune/mix.scp"
+  # spk1: "./data/tune/spk1.scp"
+  # spk2: "./data/tune/spk2.scp"
+
+dataloader:
+  shuffle: true
+  batch_size: 8
+  drop_last: false
+  vad_threshold: 40
+  mvn_dict: "data/cmvn.dict"
