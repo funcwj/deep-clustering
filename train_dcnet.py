@@ -6,7 +6,7 @@
 import argparse
 import os
 
-from trainer import PerUttTrainer
+from trainer import Trainer
 from dataset import SpectrogramReader, Dataset, DataLoader, logger
 from dcnet import DCNet
 from utils import nfft, parse_yaml
@@ -61,7 +61,7 @@ def train(args):
         if checkpoint is None else checkpoint))
 
     dcnet = DCNet(num_bins, **dcnnet_conf)
-    trainer = PerUttTrainer(dcnet, **config_dict["trainer"])
+    trainer = Trainer(dcnet, **config_dict["trainer"])
     trainer.run(train_loader, valid_loader, num_epoches=args.num_epoches)
 
 

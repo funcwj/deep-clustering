@@ -1,9 +1,9 @@
 # config for training
 
 trainer:
-  checkpoint: "./tune/2spk_dcnet_a"
-  optimizer: "adam"
-  lr: 1e-3
+  checkpoint: "./tune/2spk_dcnet_d"
+  optimizer: "rmsprop"
+  lr: 1e-5
   momentum: 0.9
   weight_decay: 0
   clip_norm: 200
@@ -12,8 +12,8 @@ trainer:
 dcnet:
   rnn: "lstm"
   embedding_dim: 20
-  num_layers: 4
-  hidden_size: 300
+  num_layers: 2
+  hidden_size: 600
   dropout: 0.5
   non_linear: "tanh"
   bidirectional: true
@@ -43,8 +43,7 @@ debug_scp_conf:
 
 dataloader:
   shuffle: true
-  batch_size: 16
+  batch_size: 1
   drop_last: false
   vad_threshold: 40
   mvn_dict: "data/cmvn.dict"
-

@@ -11,22 +11,22 @@ import numpy as np
 import torch as th
 import scipy.io as sio
 
-from utils import stft, istft, parse_scps, compute_vad_mask, apply_cmvn
+from utils import stft, istft, parse_scps, compute_vad_mask, apply_cmvn, parse_yaml
 from dcnet import DCNet
-from train_dcnet import parse_yaml
-
 
 class DeepCluster(object):
-    def __init__(self, dcnet, state_dict, num_spks):
-        if not os.path.exists(state_dict):
+    def __init__(self, dcnet, dcnet_state, num_spks, pca=False, cuda=False):
+        if not os.path.exists(dcnet_state):
             raise RuntimeError(
-                "Could not find state file {}".format(state_dict))
+                "Could not find state file {}".format(dcnet_state))
         self.dcnet = dcnet
-        # compute on cpu
-        self.dcnet.load_state_dict(th.load(state_dict, map_location="cpu"))
+
+        self.location = "cuda" if args.cuda else "cpu"
+        self.dcnet.load_state_dict(
+            th.load(dcnet_state, map_location=self.location))
         self.dcnet.eval()
         self.kmeans = sklearn.cluster.KMeans(n_clusters=num_spks)
-        self.pca = sklearn.decomposition.PCA(n_components=3)
+        self.pca = sklearn.decomposition.PCA(n_components=3) if pca else None
         self.num_spks = num_spks
 
     def _cluster(self, spectra, vad_mask):
@@ -40,19 +40,21 @@ class DeepCluster(object):
         """
         # TF x D
         net_embed = self.dcnet(
-            th.tensor(spectra, dtype=th.float32),
+            th.tensor(spectra, dtype=th.float32, device=self.location),
             train=False).cpu().data.numpy()
         # filter silence embeddings: TF x D => N x D
         active_embed = net_embed[vad_mask.reshape(-1)]
         # classes: N x D
         # pca_mat: N x 3
         classes = self.kmeans.fit_predict(active_embed)
-        pca_mat = self.pca.fit_transform(active_embed)
+
+        pca_mat = None
+        if self.pca:
+            pca_mat = self.pca.fit_transform(active_embed)
 
         def form_mask(classes, spkid, vad_mask):
-            # or give silence bins to each speaker
-            # mask = ~vad_mask
-            mask = np.zeros_like(vad_mask)
+            mask = ~vad_mask
+            # mask = np.zeros_like(vad_mask)
             mask[vad_mask] = (classes == spkid)
             return mask
 
@@ -98,7 +100,12 @@ def run(args):
     frame_shift = config_dict["spectrogram_reader"]["frame_shift"]
     window = config_dict["spectrogram_reader"]["window"]
 
-    cluster = DeepCluster(dcnet, args.dcnet_state, args.num_spks)
+    cluster = DeepCluster(
+        dcnet,
+        args.dcnet_state,
+        args.num_spks,
+        pca=args.dump_pca,
+        cuda=args.cuda)
 
     utt_dict = parse_scps(args.wave_scp)
     num_utts = 0
@@ -121,9 +128,6 @@ def run(args):
             stft_mat, cmvn=dict_mvn)
 
         for index, stft_mat in enumerate(spk_spectrogram):
-            # NOTE: bss_eval_sources.m is sensitive to shift of samples,
-            #       so it's better to center frames and keep separated speech
-            #       the same length as mixture's.
             istft(
                 os.path.join(args.dump_dir, '{}.spk{}.wav'.format(
                     key, index + 1)),
@@ -136,7 +140,6 @@ def run(args):
                 fs=8000,
                 nsamps=samps.size)
             if args.dump_mask:
-                # compatible with matlab
                 sio.savemat(
                     os.path.join(args.dump_dir, '{}.spk{}.mat'.format(
                         key, index + 1)), {"mask": spk_mask[index]})
@@ -157,11 +160,19 @@ if __name__ == '__main__':
     parser.add_argument(
         "dcnet_state", type=str, help="Location of networks state file")
     parser.add_argument(
-        "wave_scp", type=str, help="Input wave scripts, in kaldi format")
+        "wave_scp",
+        type=str,
+        help="Location of input wave scripts in kaldi format")
+    parser.add_argument(
+        "--cuda",
+        default=False,
+        action="store_true",
+        dest="cuda",
+        help="If true, inference on GPUs")
     parser.add_argument(
         "--num-spks",
         type=int,
-        default=3,
+        default=2,
         dest="num_spks",
         help="Number of speakers to be seperated")
     parser.add_argument(

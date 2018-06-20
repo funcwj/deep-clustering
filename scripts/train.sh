@@ -15,6 +15,6 @@ echo "start training --> $checkpoint ..."
 
 cp $conf $checkpoint/train.yaml
 
-CUDA_VISIBLE_DEVICES=1 python ./train_dcnet.py --config $conf --num-epoches 20 > $checkpoint/train.log 2>&1 
+CUDA_VISIBLE_DEVICES=0 python ./train_dcnet.py --config $conf --num-epoches 20 > $checkpoint/train.log 2>&1 
 
 echo "done"

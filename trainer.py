@@ -31,7 +31,7 @@ def create_optimizer(optimizer, params, **kwargs):
     return opt
 
 
-class PerUttTrainer(object):
+class Trainer(object):
     def __init__(self,
                  dcnet,
                  checkpoint="checkpoint",
@@ -43,9 +43,6 @@ class PerUttTrainer(object):
                  num_spks=2):
         self.nnet = dcnet
         logger.info("DCNet:\n{}".format(self.nnet))
-        if type(lr) is str:
-            lr = float(lr)
-            logger.info("Transfrom lr from str to float => {}".format(lr))
         self.optimizer = create_optimizer(
             optimizer,
             self.nnet.parameters(),

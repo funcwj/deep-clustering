@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # wujian@2018
 
-mix_scp=./data/tune/mix.scp
+mix_scp=./data/2spk/test/mix.scp
 mdl_dir=./tune/2spk_dcnet_a
 
 set -eu
