@@ -129,8 +129,8 @@ class Trainer(object):
             binary_mask N x T x F
         """
         if tgt_index.shape != binary_mask.shape:
-            raise ValueError("Dimension mismatch {} vs \
-                             {}".format(tgt_index.shape, binary_mask.shape))
+            raise ValueError("Dimension mismatch {} vs {}".format(
+                tgt_index.shape, binary_mask.shape))
         if th.max(tgt_index) != self.num_spks - 1:
             warnings.warn(
                 "Maybe something wrong with target embeddings computing")

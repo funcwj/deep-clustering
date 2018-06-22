@@ -11,7 +11,7 @@ import numpy as np
 import torch as th
 import scipy.io as sio
 
-from utils import stft, istft, parse_scps, compute_vad_mask, apply_cmvn, parse_yaml
+from utils import stft, istft, parse_scps, compute_vad_mask, apply_cmvn, parse_yaml, EPSILON
 from dcnet import DCNet
 
 class DeepCluster(object):
@@ -70,7 +70,7 @@ class DeepCluster(object):
         if not np.iscomplexobj(spectra):
             raise ValueError("Input must be matrix in complex value")
         # compute log-magnitude spectrogram
-        log_spectra = np.log(np.abs(spectra))
+        log_spectra = np.log(np.maximum(np.abs(spectra), EPSILON))
         # compute vad mask before do mvn
         vad_mask = compute_vad_mask(
             log_spectra, threshold_db=40).astype(np.bool)

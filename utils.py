@@ -2,7 +2,6 @@
 # coding=utf-8
 # wujian@2018
 
-
 import os
 import warnings
 import yaml
@@ -11,6 +10,7 @@ import librosa as audio_lib
 import numpy as np
 
 MAX_INT16 = np.iinfo(np.int16).max
+EPSILON = np.finfo(np.float32).eps
 
 config_keys = [
     "trainer", "dcnet", "spectrogram_reader", "dataloader", "train_scp_conf",
@@ -52,7 +52,7 @@ def stft(file,
     if apply_pow:
         stft_mat = np.power(stft_mat, 2)
     if apply_log:
-        stft_mat = np.log(stft_mat)
+        stft_mat = np.log(np.maximum(stft_mat, EPSILON))
     if transpose:
         stft_mat = np.transpose(stft_mat)
     return stft_mat if not return_samps else (samps, stft_mat)
@@ -147,6 +147,10 @@ def parse_yaml(yaml_conf):
     for key in config_keys:
         if key not in config_dict:
             raise KeyError("Missing {} configs in yaml".format(key))
+    batch_size = config_dict["dataloader"]["batch_size"]
+    if batch_size <= 0:
+        raise ValueError("Invalid batch_size: {}".format(batch_size))
+
     num_frames = config_dict["spectrogram_reader"]["frame_length"]
     num_bins = nfft(num_frames) // 2 + 1
     if len(config_dict["train_scp_conf"]) != len(
