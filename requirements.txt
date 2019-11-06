@@ -5,4 +5,4 @@ librosa==0.5.1
 tqdm==4.19.4
 config==0.3.9
 scikit_learn==0.19.1
-PyYAML==3.12
+PyYAML==5.1
