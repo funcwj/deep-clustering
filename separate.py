@@ -23,7 +23,8 @@ class DeepCluster(object):
 
         self.location = "cuda" if args.cuda else "cpu"
         self.dcnet.load_state_dict(
-            th.load(dcnet_state, map_location=self.location))
+            th.load(dcnet_state, map_location='cpu'))
+        self.dcnet.to(self.location)
         self.dcnet.eval()
         self.kmeans = sklearn.cluster.KMeans(n_clusters=num_spks)
         self.pca = sklearn.decomposition.PCA(n_components=3) if pca else None
