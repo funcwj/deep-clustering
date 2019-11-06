@@ -19,7 +19,7 @@ class DeepCluster(object):
         if not os.path.exists(dcnet_state):
             raise RuntimeError(
                 "Could not find state file {}".format(dcnet_state))
-        self.dcnet = dcnet
+        self.dcnet = dcnet.cuda()
 
         self.location = "cuda" if args.cuda else "cpu"
         self.dcnet.load_state_dict(
